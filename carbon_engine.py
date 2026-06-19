@@ -4,7 +4,7 @@ Deterministic CO2 calculation engine for the Carbon Footprint Platform.
 """
 
 import sqlite3
-from datetime import datetime, date
+from datetime import date
 from typing import Optional
 
 # ── Emission factors ────────────────────────────────────────────────────────
@@ -105,30 +105,30 @@ def get_category_breakdown(user_id: int, db_path: str = "carbon.db") -> dict:
     Returns a dict like:
         {"travel": 12.5, "food": 4.0, "electricity": 6.56}
     """
-    travel_types      = ("car", "bike", "bus", "flight")
-    food_types        = ("veg", "non_veg")
-    electricity_types = ("electricity",)
-
-    def _sum_for(types: tuple, conn: sqlite3.Connection) -> float:
-        placeholders = ",".join("?" * len(types))
-        cur = conn.execute(
-            f"""
-            SELECT COALESCE(SUM(co2_kg), 0) AS total
-            FROM   activities
-            WHERE  user_id      = ?
-              AND  activity_type IN ({placeholders})
-              AND  timestamp    >= DATE('now', '-6 days')
-            """,
-            (user_id, *types),
-        )
-        return round(float(cur.fetchone()[0]), 4)
-
+    breakdown = {"travel": 0.0, "food": 0.0, "electricity": 0.0}
     with sqlite3.connect(db_path) as conn:
-        return {
-            "travel":      _sum_for(travel_types, conn),
-            "food":        _sum_for(food_types, conn),
-            "electricity": _sum_for(electricity_types, conn),
-        }
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute(
+            """
+            SELECT 
+                CASE 
+                    WHEN activity_type IN ('car', 'bike', 'bus', 'flight') THEN 'travel'
+                    WHEN activity_type IN ('veg', 'non_veg') THEN 'food'
+                    WHEN activity_type IN ('electricity') THEN 'electricity'
+                END AS category,
+                COALESCE(SUM(co2_kg), 0) AS total
+            FROM   activities
+            WHERE  user_id   = ?
+              AND  timestamp >= DATE('now', '-6 days')
+            GROUP  BY category
+            """,
+            (user_id,),
+        )
+        for row in cur.fetchall():
+            cat = row["category"]
+            if cat in breakdown:
+                breakdown[cat] = round(float(row["total"]), 4)
+    return breakdown
 
 
 def get_daily_trend(user_id: int, db_path: str = "carbon.db") -> list[dict]:

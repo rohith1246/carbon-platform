@@ -9,7 +9,6 @@ Run from the project root:
 import sys
 import os
 import json
-import sqlite3
 import tempfile
 
 import pytest

@@ -6,7 +6,7 @@ Carbon Footprint Awareness Platform – Flask application entry point.
 import os
 import sqlite3
 import logging
-from datetime import datetime
+
 
 from dotenv import load_dotenv
 from flask import (
@@ -88,6 +88,9 @@ def init_db() -> None:
 
             CREATE INDEX IF NOT EXISTS idx_activities_user_ts
                 ON activities(user_id, timestamp);
+
+            CREATE INDEX IF NOT EXISTS idx_activities_covering
+                ON activities(user_id, timestamp, activity_type, co2_kg);
             """
         )
     logger.info("Database initialised at %s", DB_PATH)
