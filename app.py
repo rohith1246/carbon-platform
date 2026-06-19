@@ -136,6 +136,7 @@ def favicon():
 
 @app.route("/")
 def index():
+    """Render the landing page, or redirect to dashboard if already authenticated."""
     if "user_id" in session:
         return redirect(url_for("dashboard"))
     return render_template("index.html")
@@ -143,6 +144,7 @@ def index():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    """Handle new user registration with validation checks."""
     if "user_id" in session:
         return redirect(url_for("dashboard"))
 
@@ -162,6 +164,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """Verify credentials and initiate session-based authentication."""
     if "user_id" in session:
         return redirect(url_for("dashboard"))
 
@@ -184,6 +187,7 @@ def login():
 @app.route("/logout")
 @login_required
 def logout():
+    """Clear session data and log out the user."""
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("index"))
@@ -193,6 +197,7 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    """Render the user dashboard with carbon score, breakdown, and AI insights."""
     user_id  = session["user_id"]
     username = session["username"]
 
@@ -201,9 +206,12 @@ def dashboard():
     weekly_total     = get_weekly_total(user_id, DB_PATH)
     category_breakdown = get_category_breakdown(user_id, DB_PATH)
 
-    # AI insights
-    all_acts = _get_all_activities_7days(user_id)
-    insights = get_ai_insights(all_acts, daily_total, category_breakdown)
+    # AI insights - session caching to optimize performance and prevent API call overhead
+    insights = session.get("ai_insights")
+    if not insights:
+        all_acts = _get_all_activities_7days(user_id)
+        insights = get_ai_insights(all_acts, daily_total, category_breakdown)
+        session["ai_insights"] = insights
 
     # Eco-score band
     score = insights.get("eco_score", 50)
@@ -231,6 +239,7 @@ def dashboard():
 @app.route("/log", methods=["POST"])
 @login_required
 def log_activity():
+    """Log a new activity, save it to the SQLite database, and invalidate the AI cache."""
     user_id       = session["user_id"]
     activity_type = request.form.get("activity_type", "").strip().lower()
     raw_qty       = request.form.get("quantity", "").strip()
@@ -260,6 +269,9 @@ def log_activity():
             (user_id, activity_type, quantity, co2),
         )
 
+    # Invalidate AI insights cache since new activity alters the footprint profile
+    session.pop("ai_insights", None)
+
     flash(
         f"Logged {quantity} unit(s) of '{activity_type}' → {co2:.2f} kg CO₂.",
         "success",
@@ -271,6 +283,7 @@ def log_activity():
 @app.route("/analytics")
 @login_required
 def analytics():
+    """Render the carbon analytics page showing weekly metrics and daily trends."""
     user_id  = session["user_id"]
     username = session["username"]
 
