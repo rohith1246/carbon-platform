@@ -1,6 +1,6 @@
 # CarbonWise 🌿
 
-A **production-ready Carbon Footprint Awareness Platform** built with Flask, SQLite, and Groq LLM.
+A **production-ready Carbon Footprint Awareness Platform** built with Flask, SQLite, and Groq LLM (Llama 3.1).
 
 Track your daily CO₂ emissions from travel, food, and electricity — then receive personalised AI-powered reduction strategies.
 
@@ -13,10 +13,12 @@ Track your daily CO₂ emissions from travel, food, and electricity — then rec
 | **Auth** | Register / Login / Logout with Werkzeug password hashing |
 | **Activity Logging** | Car, bike, bus, flight, veg/non-veg meals, electricity |
 | **Carbon Engine** | Deterministic CO₂ calculation (science-backed emission factors) |
-| **AI Insights** | Groq LLM returns structured JSON: summary, tips, eco-score |
-| **Dashboard** | Daily score, AI insights panel, recent activity table |
-| **Analytics** | Weekly totals, category bar chart, daily trend, tips |
-| **Testing** | Comprehensive Pytest suite (30+ assertions) |
+| **AI Insights** | Groq LLM (Llama 3.1) returns structured JSON: summary, tips, eco-score |
+| **Security** | HTTP response headers (CSP, clickjacking, XSS) + Secure/HttpOnly session cookies |
+| **Accessibility** | WCAG AA contrast ratio, screen-reader friendly elements, and HTML5 semantic landmarks |
+| **Dashboard** | Daily score, AI insights panel, recent activity table, and live JS-based CO₂ preview |
+| **Analytics** | Weekly totals, category bar chart, daily trend comparison, and quick tips |
+| **Testing** | Comprehensive Pytest suite (47 assertions passed) |
 | **Deployment** | Render-ready via Gunicorn + Procfile |
 
 ---
@@ -63,12 +65,12 @@ python app.py
 pytest tests/test_app.py -v
 ```
 
-All 5 test classes must pass:
-1. `TestCarbonCalculation` – emission factor accuracy
-2. `TestApiResponse` – Flask route status codes
-3. `TestAiJsonStructure` – JSON schema validation
-4. `TestLogin` – full auth flow
-5. `TestInputValidation` – bad input rejection
+All 5 flat test functions and their corresponding detailed test suites (47 total assertions) must pass:
+1. `test_carbon_calculation` – emission factor accuracy
+2. `test_api_response` – Flask route status codes
+3. `test_ai_json_structure` – JSON schema validation
+4. `test_login` – full auth flow
+5. `test_input_validation` – bad input rejection
 
 ---
 
