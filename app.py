@@ -130,6 +130,10 @@ def _get_all_activities_7days(user_id: int) -> list[dict]:
 
 
 # ── Auth routes ──────────────────────────────────────────────────────────────
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
+
 @app.route("/")
 def index():
     if "user_id" in session:
