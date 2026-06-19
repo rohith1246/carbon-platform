@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – CarbonWise</title>
+  <meta name="description" content="Your personal carbon footprint dashboard with daily totals, activity log, and AI-powered suggestions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="app-body">
+
+  <!-- ── Topbar ──────────────────────────────────────────────────────────── -->
+  <header class="topbar glass">
+    <div class="topbar-brand">
+      <span class="nav-logo" role="img" aria-label="sprout">🌿</span>
+      <span class="nav-title">CarbonWise</span>
+    </div>
+    <nav class="topbar-nav" aria-label="Dashboard navigation">
+      <a href="{{ url_for('dashboard') }}"  class="topbar-link active">Dashboard</a>
+      <a href="{{ url_for('analytics') }}"  class="topbar-link">Analytics</a>
+    </nav>
+    <div class="topbar-user">
+      <span class="user-chip"><span role="img" aria-label="user profile">👤</span> {{ username }}</span>
+      <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm">Logout</a>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ── Score cards row ──────────────────────────────────────────────── -->
+    <section class="score-row" aria-label="Carbon score summary">
+
+      <div class="score-card glass score-card-main score-{{ score_band }}">
+        <div class="score-label">Today's CO₂</div>
+        <div class="score-value">{{ "%.2f"|format(daily_total) }}</div>
+        <div class="score-unit">kg CO₂</div>
+        <div class="score-badge score-badge-{{ score_band }}">
+          {% if score_band == "good" %}<span role="img" aria-label="green indicator">🟢</span> Good
+          {% elif score_band == "average" %}<span role="img" aria-label="yellow indicator">🟡</span> Average
+          {% else %}<span role="img" aria-label="red indicator">🔴</span> High
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="score-card glass">
+        <div class="score-label">Weekly Total</div>
+        <div class="score-value">{{ "%.2f"|format(weekly_total) }}</div>
+        <div class="score-unit">kg CO₂ / 7 days</div>
+      </div>
+
+      <div class="score-card glass eco-score-card">
+        <div class="score-label">Eco Score</div>
+        <div class="score-value gradient-text">{{ insights.eco_score }}</div>
+        <div class="score-unit">out of 100</div>
+        <div class="eco-bar">
+          <div class="eco-bar-fill" style="width: {{ insights.eco_score }}%"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Main grid ────────────────────────────────────────────────────── -->
+    <div class="dash-grid">
+
+      <!-- LOG ACTIVITY ── left col -->
+      <section class="dash-card glass" aria-labelledby="log-heading">
+        <h2 id="log-heading" class="dash-card-title">
+          <span class="title-icon" role="img" aria-label="plus icon">➕</span> Log Activity
+        </h2>
+
+        <form method="POST" action="{{ url_for('log_activity') }}" class="log-form" id="log-activity-form">
+
+          <div class="form-group">
+            <label for="activity_type" class="form-label">Activity Type</label>
+            <select id="activity_type" name="activity_type" class="form-select" required>
+              <option value="" disabled selected>– choose –</option>
+              <optgroup label="🚗 Travel">
+                <option value="car">Car (per km)</option>
+                <option value="bike">Motorbike (per km)</option>
+                <option value="bus">Bus (per km)</option>
+                <option value="flight">Flight (per km)</option>
+              </optgroup>
+              <optgroup label="🍽️ Food">
+                <option value="non_veg">Non-veg meal (per meal)</option>
+                <option value="veg">Veg meal (per meal)</option>
+              </optgroup>
+              <optgroup label="⚡ Energy">
+                <option value="electricity">Electricity (per kWh)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="quantity" class="form-label">Quantity</label>
+            <div class="input-with-unit">
+              <input
+                id="quantity"
+                name="quantity"
+                type="number"
+                class="form-input"
+                placeholder="e.g. 50"
+                min="0.01"
+                step="0.01"
+                required
+              />
+              <span class="input-unit" id="unit-label">unit</span>
+            </div>
+          </div>
+
+          <!-- Live CO2 preview -->
+          <div class="co2-preview" id="co2-preview" aria-live="polite">
+            <span class="preview-label">Estimated CO₂:</span>
+            <span class="preview-value" id="preview-value">—</span>
+          </div>
+
+          <button id="log-submit" type="submit" class="btn btn-primary btn-full">
+            Log Activity
+          </button>
+        </form>
+
+        <!-- Category breakdown -->
+        <div class="category-breakdown">
+          <h3 class="breakdown-title">This Week's Breakdown</h3>
+          <div class="breakdown-items">
+            <div class="breakdown-item">
+              <span class="breakdown-icon" role="img" aria-label="travel icon">🚗</span>
+              <span class="breakdown-name">Travel</span>
+              <span class="breakdown-val">{{ "%.2f"|format(category_breakdown.travel) }} kg</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-icon" role="img" aria-label="food icon">🍽️</span>
+              <span class="breakdown-name">Food</span>
+              <span class="breakdown-val">{{ "%.2f"|format(category_breakdown.food) }} kg</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="breakdown-icon" role="img" aria-label="electricity icon">⚡</span>
+              <span class="breakdown-name">Electricity</span>
+              <span class="breakdown-val">{{ "%.2f"|format(category_breakdown.electricity) }} kg</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI INSIGHTS ── right col -->
+      <section class="dash-card glass ai-panel" aria-labelledby="ai-heading">
+        <h2 id="ai-heading" class="dash-card-title">
+          <span class="title-icon" role="img" aria-label="robot icon">🤖</span> AI Insights
+        </h2>
+
+        <div class="insight-block">
+          <h3 class="insight-label">Summary</h3>
+          <p class="insight-text">{{ insights.summary }}</p>
+        </div>
+
+        {% if insights.top_emission_sources %}
+        <div class="insight-block">
+          <h3 class="insight-label">Top Emission Sources</h3>
+          <ul class="insight-list">
+            {% for src in insights.top_emission_sources %}
+              <li>{{ src }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if insights.suggestions %}
+        <div class="insight-block">
+          <h3 class="insight-label"><span role="img" aria-label="lightbulb icon">💡</span> Suggestions</h3>
+          <ul class="insight-suggestions">
+            {% for tip in insights.suggestions %}
+              <li class="suggestion-item">{{ tip }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <div class="insight-motivation">
+          <span class="motivation-icon" role="img" aria-label="seedling sprout">🌱</span>
+          <em>{{ insights.motivation }}</em>
+        </div>
+      </section>
+
+    </div><!-- /.dash-grid -->
+
+    <!-- ── Recent Activity Log ──────────────────────────────────────────── -->
+    <section class="dash-card glass activity-log-card" aria-labelledby="log-table-heading">
+      <h2 id="log-table-heading" class="dash-card-title">
+        <span class="title-icon" role="img" aria-label="clipboard icon">📋</span> Recent Activities
+      </h2>
+
+      {% if activities %}
+        <div class="table-wrapper">
+          <table class="activity-table" id="activity-table">
+            <thead>
+              <tr>
+                <th>Activity</th>
+                <th>Quantity</th>
+                <th>CO₂ (kg)</th>
+                <th>Date / Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for act in activities %}
+              <tr>
+                <td>
+                  <span class="act-badge act-{{ act.activity_type }}">
+                    {{ act.activity_type | replace('_', ' ') | title }}
+                  </span>
+                </td>
+                <td>{{ act.quantity }}</td>
+                <td class="co2-cell">{{ "%.3f"|format(act.co2_kg) }}</td>
+                <td class="ts-cell">{{ act.timestamp[:16] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <span class="empty-icon" role="img" aria-label="mailbox empty">📭</span>
+          <p>No activities logged yet. Use the form above to get started!</p>
+        </div>
+      {% endif %}
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <span>🌿 CarbonWise &copy; 2026</span>
+    <a href="{{ url_for('analytics') }}" class="footer-link">View Analytics →</a>
+  </footer>
+
+  <script>
+    // ── Live CO2 preview ───────────────────────────────────────────────────
+    const EMISSION_FACTORS = {
+      car: 0.21, bike: 0.05, bus: 0.08, flight: 0.255,
+      non_veg: 2.5, veg: 0.5, electricity: 0.82
+    };
+    const UNITS = {
+      car: "km", bike: "km", bus: "km", flight: "km",
+      non_veg: "meals", veg: "meals", electricity: "kWh"
+    };
+
+    const typeSelect  = document.getElementById("activity_type");
+    const qtyInput    = document.getElementById("quantity");
+    const previewVal  = document.getElementById("preview-value");
+    const unitLabel   = document.getElementById("unit-label");
+
+    function updatePreview() {
+      const type = typeSelect.value;
+      const qty  = parseFloat(qtyInput.value);
+      unitLabel.textContent = UNITS[type] || "unit";
+      if (type && qty > 0) {
+        const co2 = (EMISSION_FACTORS[type] * qty).toFixed(3);
+        previewVal.textContent = co2 + " kg CO₂";
+        previewVal.classList.add("preview-active");
+      } else {
+        previewVal.textContent = "—";
+        previewVal.classList.remove("preview-active");
+      }
+    }
+
+    typeSelect.addEventListener("change", updatePreview);
+    qtyInput.addEventListener("input",  updatePreview);
+  </script>
+
+</body>
+</html>

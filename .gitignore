@@ -1,0 +1,29 @@
+# Environment variables
+.env
+
+# SQLite databases
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+
+# Python caches and byte code
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# OS files
+.DS_Store
+Thumbs.db

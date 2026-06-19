@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CarbonWise – Track Your Carbon Footprint</title>
+  <meta name="description" content="CarbonWise helps you track, understand, and reduce your personal carbon footprint with AI-powered insights." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="landing-body">
+
+  <!-- ── Navigation ─────────────────────────────────────────────────────── -->
+  <nav class="nav glass" aria-label="Main Navigation">
+    <div class="nav-brand">
+      <span class="nav-logo" role="img" aria-label="sprout">🌿</span>
+      <span class="nav-title">CarbonWise</span>
+    </div>
+    <div class="nav-actions">
+      <a href="{{ url_for('login') }}"    class="btn btn-ghost">Log In</a>
+      <a href="{{ url_for('register') }}" class="btn btn-primary">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- ── Hero ───────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge"><span role="img" aria-label="globe">🌍</span> AI-Powered Carbon Tracking</div>
+      <h1 class="hero-headline">
+        Know Your Carbon.<br />
+        <span class="gradient-text">Change Your World.</span>
+      </h1>
+      <p class="hero-sub">
+        Log your daily activities, get personalised AI insights, and take
+        meaningful steps towards a greener future — all in one place.
+      </p>
+      <div class="hero-cta">
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+          Start Tracking Free
+        </a>
+        <a href="{{ url_for('login') }}" class="btn btn-ghost btn-lg">
+          Sign In →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Features ───────────────────────────────────────────────────────── -->
+  <section class="features">
+    <h2 class="section-title">Everything you need to go green</h2>
+    <p class="section-sub">Simple inputs, powerful insights, real impact.</p>
+
+    <div class="features-grid">
+      <div class="feature-card glass">
+        <div class="feature-icon"><span role="img" aria-label="airplane">✈️</span></div>
+        <h3>Activity Logging</h3>
+        <p>Track travel, food, and electricity in seconds. We calculate your CO₂ automatically.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon"><span role="img" aria-label="robot">🤖</span></div>
+        <h3>AI Insights</h3>
+        <p>Groq-powered analysis delivers personalised recommendations to shrink your footprint.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon"><span role="img" aria-label="bar chart">📊</span></div>
+        <h3>Weekly Analytics</h3>
+        <p>Visual breakdowns by category with trend tracking so you can see progress over time.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon"><span role="img" aria-label="lock">🔒</span></div>
+        <h3>Secure & Private</h3>
+        <p>Your data stays yours. Industry-standard hashing and session management.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Emission stats strip ────────────────────────────────────────────── -->
+  <section class="stats-strip" aria-label="Emission Statistics Summary">
+    <div class="stat-item">
+      <span class="stat-value">0.21 kg</span>
+      <span class="stat-label">CO₂ per km by car</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value">2.5 kg</span>
+      <span class="stat-label">CO₂ per non-veg meal</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value">0.82 kg</span>
+      <span class="stat-label">CO₂ per kWh electricity</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value">0.05 kg</span>
+      <span class="stat-label">CO₂ per km by bike</span>
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <span><span role="img" aria-label="sprout">🌿</span> CarbonWise &copy; 2026 – Built for a greener planet.</span>
+  </footer>
+
+</body>
+</html>
