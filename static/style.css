@@ -740,3 +740,16 @@ ul { list-style: none; }
   .hero-headline { font-size: 2.2rem; }
   .dash-card    { padding: 1.25rem; }
 }
+
+/* ── Accessibility helpers ─────────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
